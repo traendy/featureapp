@@ -1,0 +1,115 @@
+// TODO Add this
+import com.android.build.api.dsl.AndroidSourceSet
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+def AvailableFeatures = [
+        "Zulu"
+]
+
+android {
+    compileSdk 30
+    buildToolsVersion "30.0.3"
+    // TODO Add this
+    flavorDimensions "default"
+
+    defaultConfig {
+        applicationId "de.traendy.featureapp"
+        minSdk 27
+        targetSdk 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+
+    }
+
+    // TODO Add SourceSet depending on flavor name must be before productFlavors
+    productFlavors.whenObjectAdded { flavor ->
+        AndroidSourceSet set = sourceSets.maybeCreate(flavor.name) as AndroidSourceSet
+        // for every feature in list of all features
+        // if feature is in flavor feature add it
+        // else add _off
+        flavor.ext.feat = { String... list ->
+            for (featureName in AvailableFeatures) {
+                println(flavor.name + ": " + featureName)
+                def dir
+                if (list.contains(featureName)) {
+                    dir = "src/features/$featureName"
+                } else {
+                    dir = "src/features/$featureName" + "_off"
+                }
+                println(dir)
+                addSourceDir(set, dir)
+            }
+        }
+    }
+
+    // TODO First add a Flavor
+    productFlavors {
+        Zulu {
+            feat "Zulu"
+        }
+        Bravo {
+            feat ""
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        useIR = true
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerVersion '1.5.10'
+    }
+}
+
+// TODO adds Source Dirs
+static void addSourceDir(AndroidSourceSet set, String... base) {
+    set.aidl.srcDirs += base*.concat "/aidl"
+    set.java.srcDirs += base*.concat "/java"
+    set.assets.srcDirs += base*.concat "/assets"
+    set.jni.srcDirs += base*.concat "/jni"
+    set.jniLibs.srcDirs += base*.concat "/jniLibs"
+    set.renderscript.srcDirs += base*.concat "/rs"
+    set.res.srcDirs += base*.concat "/res"
+    set.resources.srcDirs += base*.concat "/resources"
+}
+
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
+    implementation 'androidx.activity:activity-compose:1.3.0-rc01'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+}
